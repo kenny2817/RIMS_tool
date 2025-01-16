@@ -18,7 +18,7 @@ import glob
 import os
 import pandas as pd
 import json
-from parameters import Parameters
+from .parameters import Parameters
 import pm4py
 from datetime import datetime, timedelta
 
@@ -42,7 +42,8 @@ class Result(object):
                 analysis[role] = {"total": len(sim_df[sim_df['role'] == role])}
                 for resource in self._params.ROLE_CAPACITY[role][0]:
                     analysis[role][resource] = len(sim_df[sim_df['resource'] == resource])
-        self._write_json(analysis, sim)
+        # self._write_json(analysis, sim)
+        self._params.GENETICA.send_result(analysis['duration'], analysis['cost'])
 
     def general_analysis(self, sim_df):
         analysis = dict()
@@ -58,16 +59,17 @@ class Result(object):
             end = datetime.strptime(sim_df['end_time'].iloc[-1], '%Y-%m-%d %H:%M:%S.%f')
         except:
             end = datetime.strptime(sim_df['end_time'].iloc[-1], '%Y-%m-%d %H:%M:%S')
-        analysis['duration'] = str((end - start).total_seconds())
+        analysis['duration'] = (end - start).total_seconds()
         analysis['start_simulation'] = sim_df['start_time'].iloc[0]
         analysis['end_simulation'] = sim_df['end_time'].iloc[-1]
+        analysis['cost'] = sim_df['cost'].sum()
 
         return analysis
 
     def _analyse(self):
         for file in self._all_file:
             self.analysis_log(file)
-            self._csv_to_xes(file)
+            # self._csv_to_xes(file)
 
     def _write_json(self, analysis, sim):
         try:

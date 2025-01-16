@@ -4,9 +4,9 @@ Class to manage the resources shared by all the traces in the process.
 <img src="../docs/images/process_class.png" alt="Alt Text" width="780">
 '''
 import simpy
-from role_simulator import RoleSimulator
+from .role_simulator import RoleSimulator
 import math
-from parameters import Parameters
+from .parameters import Parameters
 
 
 class SimulationProcess(object):
@@ -51,8 +51,11 @@ class SimulationProcess(object):
                 list_occupations.append(occup)
         return list_occupations
 
+
+
+# decision of the resource available
     def _get_resource(self, resource_label):
-        return self._resources[resource_label]
+        return self._resources[resource_label] # list of resources
 
     def _get_resource_event(self, task):
         return self._resource_events[task]

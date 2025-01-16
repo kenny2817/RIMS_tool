@@ -2,16 +2,16 @@ from datetime import datetime, timedelta
 import simpy
 import pm4py
 import random
-from process import SimulationProcess
+from .process import SimulationProcess
 from pm4py.objects.petri_net import semantics
-from parameters import Parameters
-from utility import Prefix
+from .parameters import Parameters
+from .utility import Prefix
 from simpy.events import AnyOf, AllOf, Event
 import numpy as np
 import copy
 import csv
-from utility import Buffer, ParallelObject
-import custom_function as custom
+from .utility import Buffer, ParallelObject
+from . import custom_function as custom
 
 
 class Token(object):
@@ -75,9 +75,12 @@ class Token(object):
 
                 ### call predictor for waiting time
                 if trans.label in self._params.ROLE_ACTIVITY:
-                    resource = self._process._get_resource(self._params.ROLE_ACTIVITY[trans.label])
+                    genetica_choice = 0
+                    if len(self._params.ROLE_ACTIVITY[trans.label]) > 1: 
+                        genetica_choice = self._params.GENETICA.next_choice()
+                    resource = self._process._get_resource(self._params.ROLE_ACTIVITY[trans.label][genetica_choice])
                 else:
-                    raise ValueError('Not resource/role defined for this activity', trans.label)
+                    raise ValueError('resource/role not defined for this activity', trans.label)
 
                 #self._buffer.set_feature("wip_wait", 0 if type != 'sequential' else resource_trace.count-1)
                 self._buffer.set_feature("wip_wait", resource_trace.count)
@@ -120,11 +123,18 @@ class Token(object):
 
                 self._buffer.set_feature("wip_end", resource_trace.count)
                 self._buffer.set_feature("end_time", self._start_time + timedelta(seconds=env.now))
+
+                activity_cost = self.calculate_cost(trans.label, duration, waiting, resource._get_name())
+                self._buffer.set_feature("cost", activity_cost)
+                cumulative_cost = self._buffer.get_feature("cumulative_cost") + activity_cost
+                self._buffer.set_feature("cumulative_cost", cumulative_cost)
+                
                 self._buffer.print_values()
-                self._prefix.add_activity(trans.label)
+                self._prefix.add_activity(trans.label, resource._get_name(), single_resource)
                 resource.release(request_resource)
                 self._process._release_single_resource(resource._get_name(), single_resource)
                 resource_task.release(resource_task_request)
+
 
             self._update_marking(trans)
             trans = self.next_transition(env) if self._am else None
@@ -213,9 +223,11 @@ class Token(object):
         prob = ['AUTO'] if not self._params.PROBABILITY else self._retrieve_check_paths(all_enabled_trans)
         self._check_type_paths(prob)
         if prob[0] == 'AUTO':
-                next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
+            next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
         elif prob[0] == 'CUSTOM':
             next = self.call_custom_xor_function(all_enabled_trans)
+        elif prob[0] == 'GENETICA':
+            next = self._params.GENETICA.next_choice()
         elif type(prob[0] == float()):
             if self._check_probability(prob):
                 value = [*range(0, len(prob), 1)]
@@ -347,3 +359,12 @@ class Token(object):
                     path = env.process(Token(self._id, self._net, new_am, self._params, self._process, self._prefix, "parallel", self._writer, self._parallel_object, self._buffer._get_dictionary()).simulation(env))
                     events.append(path)
                 return events
+    
+    def calculate_cost(self, activity, duration, waiting, resource_name):
+        """
+        Calculate the cost associated with a specific activity.
+        """
+        base_cost = self._params.PROCESSING_TIME[activity].get('base_cost', 0)
+        total_cost = base_cost + (duration + waiting) * self._params.ROLE_CAPACITY[resource_name][2]
+        return total_cost
+

@@ -34,8 +34,8 @@ class Prefix(object):
     def __init__(self):
         self._list_activities = list()
 
-    def add_activity(self, activity):
-        self._list_activities.append(activity)
+    def add_activity(self, activity, role, resource):
+        self._list_activities.append((activity, role, resource))
 
     def get_prefix(self, time):
         return self._list_activities
@@ -52,6 +52,8 @@ class Buffer(object):
             "end_time": None,
             "role": None,
             "resource": None,
+            "cost": 0,
+            "cumulative_cost": 0,
             "wip_wait": -1,
             "wip_start": -1,
             "wip_end": -1,
@@ -95,6 +97,7 @@ class Buffer(object):
         self.buffer["start_time"] = None
         self.buffer["end_time"] = None
         self.buffer["resource"] = None
+        self.buffer["cost"] = 0
         self.buffer["wip_wait"] = -1
         self.buffer["wip_start"] = -1
         self.buffer["wip_end"] = -1

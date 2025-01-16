@@ -7,18 +7,16 @@
 
 import csv
 import simpy
-import utility
-from process import SimulationProcess
-from event_trace import Token
-from parameters import Parameters
-import sys, getopt
-from utility import *
 import pm4py
-from inter_trigger_timer import InterTriggerTimer
-from result_analysis import Result
+import sys, getopt, warnings
 from datetime import timedelta
-import warnings
-import sys
+
+from . import utility
+from .process import SimulationProcess
+from .parameters import Parameters
+from .event_trace import Token
+from .result_analysis import Result
+from .inter_trigger_timer import InterTriggerTimer
 
 EXAMPLE = {'arrivalsD': ['example/example_arrivals/bpi2012.pnml', 'example/example_arrivals/input_arrivals_example_distribution.json', 1, 20, 'example_arrivals'],
            'arrivalsS': ['example/example_arrivals/bpi2012.pnml', 'example/example_arrivals/input_arrivals_example_timeseries.json', 1, 10, 'example_arrivals'],
@@ -31,25 +29,26 @@ def setup(env: simpy.Environment, PATH_PETRINET, params, i, NAME, f):
     simulation_process = SimulationProcess(env, params)
     utility.define_folder_output("output/output_{}".format(NAME))
     writer = csv.writer(f)
-    writer.writerow(Buffer(writer).get_buffer_keys())
+    writer.writerow(utility.Buffer(writer).get_buffer_keys())
     net, im, fm = pm4py.read_pnml(PATH_PETRINET)
     interval = InterTriggerTimer(params, simulation_process, params.START_SIMULATION)
     for i in range(0, params.TRACES):
-        prefix = Prefix()
+        prefix = utility.Prefix()
         itime = interval.get_next_arrival(env, i)
         yield env.timeout(itime)
         parallel_object = utility.ParallelObject()
         time_trace = params.START_SIMULATION + timedelta(seconds=env.now)
         env.process(Token(i, net, im, params, simulation_process, prefix, 'sequential', writer, parallel_object, time_trace, None).simulation(env))
 
-def run_simulation(PATH_PETRINET, PATH_PARAMETERS, N_SIMULATION, N_TRACES, NAME):
+def run_simulation(PATH_PETRINET, PATH_PARAMETERS, PATH_GENETICA, N_SIMULATION, N_TRACES, NAME):
+    params = Parameters(PATH_PARAMETERS, PATH_GENETICA, N_TRACES)
     for i in range(0, N_SIMULATION):
         with open("output/output_{}/simulated_log_{}_{}".format(NAME, NAME, i) + ".csv", 'w') as f:
-            params = Parameters(PATH_PARAMETERS, N_TRACES)
+            params.GENETICA.reset()
             env = simpy.Environment()
             env.process(setup(env, PATH_PETRINET, params, i, NAME, f))
             env.run(until=params.SIM_TIME)
-    result = Result("output_{}".format(NAME), Parameters(PATH_PARAMETERS, N_TRACES))
+    result = Result("output_{}".format(NAME), params)
     result._analyse()
 
 
@@ -76,7 +75,7 @@ def main(argv):
             else:
                 raise ValueError('The keywords for the provided examples are the following: arrivalsD, arrivalsS, decision_mining, process_times')
     print(PATH_PETRINET, PATH_PARAMETERS, N_SIMULATION, N_TRACES, NAME)
-    run_simulation(PATH_PETRINET, PATH_PARAMETERS, N_SIMULATION, N_TRACES, NAME)
+    run_simulation(PATH_PETRINET, PATH_PARAMETERS, 'NULL', N_SIMULATION, N_TRACES, NAME)
 
 
 if __name__ == "__main__":

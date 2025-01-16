@@ -28,7 +28,7 @@ used as input from a predictive model.
 '''
 
 from statsmodels.tsa.ar_model import AutoRegResults
-from utility import Buffer
+from .utility import Buffer
 import random
 import pickle
 from datetime import datetime
@@ -178,16 +178,17 @@ def custom_decision_mining(buffer: Buffer):
         }
     ```
     """
-    input_feature = list()
-    prefix = buffer.get_feature("prefix")
-    input_feature.append(1 if 'A_PREACCEPTED' in prefix else 0)
-    input_feature.append(1 if 'A_ACCEPTED' in prefix else 0)
-    input_feature.append(1 if 'A_FINALIZED' in prefix else 0)
-    input_feature.append(buffer.get_feature("attribute_case")['AMOUNT'])
-    input_feature.append(buffer.get_feature("end_time").hour)
-    input_feature.append(buffer.get_feature("end_time").weekday())
+    prefix = buffer.get_feature("prefix") 
+    return 1 if prefix and prefix[-1][1] == "Expert" else 0
+    # input_feature = list()
+    # input_feature.append(1 if 'A_PREACCEPTED' in prefix else 0)
+    # input_feature.append(1 if 'A_ACCEPTED' in prefix else 0)
+    # input_feature.append(1 if 'A_FINALIZED' in prefix else 0)
+    # input_feature.append(buffer.get_feature("attribute_case")['AMOUNT'])
+    # input_feature.append(buffer.get_feature("end_time").hour)
+    # input_feature.append(buffer.get_feature("end_time").weekday())
 
-    loaded_model = pickle.load(
-        open(os.getcwd() + '/example/example_decision_mining/random_forest.pkl', 'rb'))
-    y_pred_f = loaded_model.predict([input_feature])
-    return int(y_pred_f[0])
+    # loaded_model = pickle.load(
+    #     open(os.getcwd() + '/example/example_decision_mining/random_forest.pkl', 'rb'))
+    # y_pred_f = loaded_model.predict([input_feature])
+    # return int(y_pred_f[0])
