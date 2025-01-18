@@ -50,7 +50,6 @@ def run_simulation(PATH_PETRINET, PATH_PARAMETERS, GENE, N_SIMULATION, N_TRACES,
             env.run(until=params.SIM_TIME)
     result = Result("output_{}".format(NAME), params)
     result._analyse()
-    print(result.output)
     return result.output
 
 
