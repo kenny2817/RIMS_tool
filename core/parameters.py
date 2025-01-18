@@ -9,13 +9,13 @@ from .genetica import Genetica
 
 class Parameters(object):
 
-    def __init__(self, path_parameters: str, path_genetica: str, traces: int):
+    def __init__(self, path_parameters: str, gene: list, traces: int):
         self.TRACES = traces
         """TRACES: number of traces to generate"""
         self.PATH_PARAMETERS = path_parameters
         """PATH_PARAMETERS: path of json file for others parameters. """
         self.read_metadata_file()
-        self.GENETICA = Genetica(path_genetica)
+        self.GENETICA = Genetica(gene)
         
     def read_metadata_file(self):
         '''

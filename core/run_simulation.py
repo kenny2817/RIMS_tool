@@ -40,8 +40,8 @@ def setup(env: simpy.Environment, PATH_PETRINET, params, i, NAME, f):
         time_trace = params.START_SIMULATION + timedelta(seconds=env.now)
         env.process(Token(i, net, im, params, simulation_process, prefix, 'sequential', writer, parallel_object, time_trace, None).simulation(env))
 
-def run_simulation(PATH_PETRINET, PATH_PARAMETERS, PATH_GENETICA, N_SIMULATION, N_TRACES, NAME):
-    params = Parameters(PATH_PARAMETERS, PATH_GENETICA, N_TRACES)
+def run_simulation(PATH_PETRINET, PATH_PARAMETERS, GENE, N_SIMULATION, N_TRACES, NAME):
+    params = Parameters(PATH_PARAMETERS, GENE, N_TRACES)
     for i in range(0, N_SIMULATION):
         with open("output/output_{}/simulated_log_{}_{}".format(NAME, NAME, i) + ".csv", 'w') as f:
             params.GENETICA.reset()
@@ -50,6 +50,8 @@ def run_simulation(PATH_PETRINET, PATH_PARAMETERS, PATH_GENETICA, N_SIMULATION, 
             env.run(until=params.SIM_TIME)
     result = Result("output_{}".format(NAME), params)
     result._analyse()
+    print(result.output)
+    return result.output
 
 
 def main(argv):

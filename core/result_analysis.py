@@ -29,6 +29,7 @@ class Result(object):
         self._folder = folder
         self._all_file = glob.glob("{}/output/{}/simulated_log_*.csv".format(os.getcwd(), self._folder))
         self._params = params
+        self.output = []
 
     def analysis_log(self, sim):
         '''
@@ -43,7 +44,8 @@ class Result(object):
                 for resource in self._params.ROLE_CAPACITY[role][0]:
                     analysis[role][resource] = len(sim_df[sim_df['resource'] == resource])
         # self._write_json(analysis, sim)
-        self._params.GENETICA.send_result(analysis['duration'], analysis['cost'])
+        # self._params.GENETICA.send_result(analysis['duration'], analysis['cost'])
+        self.output.append([analysis['duration'], analysis['cost']])
 
     def general_analysis(self, sim_df):
         analysis = dict()
