@@ -32,11 +32,11 @@ class Parameters(object):
                 self.INTER_TRIGGER = data["interTriggerTimer"]
                 self.ROLE_ACTIVITY = dict()
                 
-                for elem in self.TASKS:
+                for name, elem in self.TASKS.items():
                     role = elem['role']
                     if not isinstance(role, list):  # list assert
                         role = [role]
-                    self.ROLE_ACTIVITY[elem] = role
+                    self.ROLE_ACTIVITY[name] = role
 
                 if 'calendar' in data['interTriggerTimer'] and data['interTriggerTimer']['calendar']:
                     self.ROLE_CAPACITY = {'TRIGGER_TIMER': [math.inf, {'days': data['interTriggerTimer']['calendar']['days'], 'hour_min': data['interTriggerTimer']['calendar']['hour_min'], 'hour_max': data['interTriggerTimer']['calendar']['hour_max']}]}
