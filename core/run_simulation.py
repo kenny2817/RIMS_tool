@@ -43,11 +43,15 @@ def setup(env: simpy.Environment, PATH_PETRINET, params, i, NAME, f):
 def run_simulation(PATH_PETRINET, PATH_PARAMETERS, GENE, N_SIMULATION, N_TRACES, NAME):
     params = Parameters(PATH_PARAMETERS, GENE, N_TRACES)
     for i in range(0, N_SIMULATION):
-        with open("output/output_{}/simulated_log_{}_{}".format(NAME, NAME, i) + ".csv", 'w') as f:
-            params.GENETICA.reset()
-            env = simpy.Environment()
-            env.process(setup(env, PATH_PETRINET, params, i, NAME, f))
-            env.run(until=params.SIM_TIME)
+        try:
+            with open("output/output_{}/simulated_log_{}_{}".format(NAME, NAME, i) + ".csv", 'w') as f:
+                params.GENETICA.reset()
+                env = simpy.Environment()
+                env.process(setup(env, PATH_PETRINET, params, i, NAME, f))
+                env.run(until=params.SIM_TIME)
+        except Exception as e:
+            print(e)
+            raise e
     result = Result("output_{}".format(NAME), params)
     result._analyse()
     return result.output

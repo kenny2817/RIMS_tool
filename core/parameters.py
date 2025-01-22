@@ -24,21 +24,19 @@ class Parameters(object):
         if os.path.exists(self.PATH_PARAMETERS):
             with open(self.PATH_PARAMETERS) as file:
                 data = json.load(file)
-                roles_table = data['resource_table']
                 self.START_SIMULATION = self._check_default_parameters(data, 'start_timestamp')
                 self.SIM_TIME = self._check_default_parameters(data, 'duration_simulation')
                 self.PROBABILITY = data['probability'] if 'probability' in data.keys() else []
-                self.PROCESSING_TIME = data['processing_time']
+                self.TASKS = data['tasks']
                 self.WAITING_TIME = data['waiting_time'] if 'waiting_time' in data.keys() else []
                 self.INTER_TRIGGER = data["interTriggerTimer"]
                 self.ROLE_ACTIVITY = dict()
                 
-                for elem in roles_table:
+                for elem in self.TASKS:
                     role = elem['role']
                     if not isinstance(role, list):  # list assert
                         role = [role]
-                    self.ROLE_ACTIVITY[elem['task']] = role
-                    # self.ROLE_ACTIVITY[elem['task']] = elem['role']
+                    self.ROLE_ACTIVITY[elem] = role
 
                 if 'calendar' in data['interTriggerTimer'] and data['interTriggerTimer']['calendar']:
                     self.ROLE_CAPACITY = {'TRIGGER_TIMER': [math.inf, {'days': data['interTriggerTimer']['calendar']['days'], 'hour_min': data['interTriggerTimer']['calendar']['hour_min'], 'hour_max': data['interTriggerTimer']['calendar']['hour_max']}]}

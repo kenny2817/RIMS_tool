@@ -53,7 +53,6 @@ class Buffer(object):
             "role": None,
             "resource": None,
             "cost": 0,
-            "cumulative_cost": 0,
             "wip_wait": -1,
             "wip_start": -1,
             "wip_end": -1,

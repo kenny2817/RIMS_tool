@@ -51,7 +51,7 @@ class Result(object):
         analysis = dict()
         analysis['total_events'] = len(sim_df)
         analysis['total_traces'] = len(set(sim_df['id_case']))
-        for act in self._params.PROCESSING_TIME.keys():
+        for act in self._params.TASKS.keys():
             analysis[act + "_frequency"] = len(sim_df[sim_df['activity'] == act])
         try:
             start = datetime.strptime(sim_df['start_time'].iloc[0], '%Y-%m-%d %H:%M:%S.%f')
