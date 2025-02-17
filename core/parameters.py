@@ -10,12 +10,12 @@ from .genetica import Genetica
 class Parameters(object):
 
     def __init__(self, path_parameters: str, gene: list, traces: int):
+        self.GENETICA = Genetica(gene, traces)
         self.TRACES = traces
         """TRACES: number of traces to generate"""
         self.PATH_PARAMETERS = path_parameters
         """PATH_PARAMETERS: path of json file for others parameters. """
         self.read_metadata_file()
-        self.GENETICA = Genetica(gene)
         
     def read_metadata_file(self):
         '''
@@ -27,13 +27,14 @@ class Parameters(object):
                 self.START_SIMULATION = self._check_default_parameters(data, 'start_timestamp')
                 self.SIM_TIME = self._check_default_parameters(data, 'duration_simulation')
                 self.PROBABILITY = data['probability'] if 'probability' in data.keys() else []
+                self.GENETICA.set_mapping(data['mapping'] if 'mapping' in data.keys() else {})
                 self.TASKS = data['tasks']
                 self.WAITING_TIME = data['waiting_time'] if 'waiting_time' in data.keys() else []
                 self.INTER_TRIGGER = data["interTriggerTimer"]
                 self.ROLE_ACTIVITY = dict()
                 
                 for name, elem in self.TASKS.items():
-                    role = elem['role']
+                    role = elem['roles']
                     if not isinstance(role, list):  # list assert
                         role = [role]
                     self.ROLE_ACTIVITY[name] = role
@@ -42,15 +43,17 @@ class Parameters(object):
                     self.ROLE_CAPACITY = {'TRIGGER_TIMER': [math.inf, {'days': data['interTriggerTimer']['calendar']['days'], 'hour_min': data['interTriggerTimer']['calendar']['hour_min'], 'hour_max': data['interTriggerTimer']['calendar']['hour_max']}]}
                 else:
                     self.ROLE_CAPACITY = {'TRIGGER_TIMER': [math.inf, []]}
-                self._define_roles_resources(data['resource'])
+                self._define_roles_resources(data['roles'])
         else:
-            raise ValueError('Parameter file does not exist')
+            raise ValueError(f"Parameter file does not exist {self.PATH_PARAMETERS}")
 
     def _define_roles_resources(self, roles):
         for idx, key in enumerate(roles):
-            self.ROLE_CAPACITY[key] = [roles[key]['resources'], {'days': roles[key]['calendar']['days'],
-                                                                      'hour_min': roles[key]['calendar']['hour_min'],
-                                                                      'hour_max': roles[key]['calendar']['hour_max']}, roles[key]['salary']]
+            self.ROLE_CAPACITY[key] = [roles[key]['resources'], 
+                                       {'days': roles[key]['attributes']['calendar']['days'],
+                                        'hour_min': roles[key]['attributes']['calendar']['hour_min'],
+                                        'hour_max': roles[key]['attributes']['calendar']['hour_max']},
+                                       roles[key]['attributes']['salary']]
 
     def _check_default_parameters(self, data, type):
         if type == 'start_timestamp':

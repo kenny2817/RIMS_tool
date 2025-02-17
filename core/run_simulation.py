@@ -6,8 +6,8 @@
 """
 
 import csv
-import simpy
-import pm4py
+import simpy # type: ignore
+import pm4py # type: ignore
 import sys, getopt, warnings
 from datetime import timedelta
 
@@ -40,7 +40,7 @@ def setup(env: simpy.Environment, PATH_PETRINET, params, i, NAME, f):
         time_trace = params.START_SIMULATION + timedelta(seconds=env.now)
         env.process(Token(i, net, im, params, simulation_process, prefix, 'sequential', writer, parallel_object, time_trace, None).simulation(env))
 
-def run_simulation(PATH_PETRINET, PATH_PARAMETERS, GENE, N_SIMULATION, N_TRACES, NAME):
+def run_simulation(PATH_PETRINET: str, PATH_PARAMETERS: str, GENE: list[int], N_SIMULATION: int, N_TRACES: int, NAME: str):
     params = Parameters(PATH_PARAMETERS, GENE, N_TRACES)
     for i in range(0, N_SIMULATION):
         try:

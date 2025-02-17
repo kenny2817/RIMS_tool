@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
-import simpy
-import pm4py
+import simpy # type: ignore
+import pm4py # type: ignore
 import random
 from .process import SimulationProcess
-from pm4py.objects.petri_net import semantics
+from pm4py.objects.petri_net import semantics # type: ignore
 from .parameters import Parameters
 from .utility import Prefix
-from simpy.events import AnyOf, AllOf, Event
-import numpy as np
+from simpy.events import AnyOf, AllOf, Event # type: ignore
+import numpy as np # type: ignore
 import copy
 import csv
 from .utility import Buffer, ParallelObject
@@ -73,10 +73,10 @@ class Token(object):
 
                 ### call predictor for waiting time
                 if trans.label in self._params.ROLE_ACTIVITY:
-                    genetica_choice = 0
-                    if len(self._params.ROLE_ACTIVITY[trans.label]) > 1: 
-                        genetica_choice = self._params.GENETICA.next_choice()
-                    resource = self._process._get_resource(self._params.ROLE_ACTIVITY[trans.label][genetica_choice])
+                    # genetica_choice = 0
+                    # if len(self._params.ROLE_ACTIVITY[trans.label]) > 1: 
+                    #     genetica_choice = self._params.GENETICA.next_choice()
+                    resource = self._process._get_resource(self._params.ROLE_ACTIVITY[trans.label][0])
                 else:
                     raise ValueError('resource/role not defined for this activity', trans.label)
 
@@ -181,9 +181,11 @@ class Token(object):
         for trans in all_enabled_trans:
             try:
                 if trans.label:
-                    prob.append(self._params.PROBABILITY[trans.label])
+                    # print(trans.label, end=" | ")
+                    prob.append(self._params.PROBABILITY.get(trans.label))
                 else:
-                    prob.append(self._params.PROBABILITY[trans.name])
+                    # print(trans.name, " | ", end="")
+                    prob.append(self._params.PROBABILITY.get(trans.name))
             except:
                 print('ERROR: Not all path probabilities are defined. Define all paths: ', all_enabled_trans)
 
@@ -217,13 +219,14 @@ class Token(object):
         ```
         """
         prob = ['AUTO'] if not self._params.PROBABILITY else self._retrieve_check_paths(all_enabled_trans)
+        # print(prob)
         self._check_type_paths(prob)
         if prob[0] == 'AUTO':
             next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
         elif prob[0] == 'CUSTOM':
             next = self.call_custom_xor_function(all_enabled_trans)
         elif prob[0] == 'GENETICA':
-            next = self._params.GENETICA.next_choice()
+            next = self._params.GENETICA.choice(all_enabled_trans)
         elif type(prob[0] == float()):
             if self._check_probability(prob):
                 value = [*range(0, len(prob), 1)]
@@ -231,6 +234,8 @@ class Token(object):
             else:
                 next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
 
+        # print("next: ", next)
+        # print(all_enabled_trans)
         return all_enabled_trans[next]
 
     def define_processing_time(self, activity):
@@ -259,14 +264,14 @@ class Token(object):
             ```
         """
         try:
-            if self._params.TASKS[activity]["name"] == 'custom':
+            if self._params.TASKS[activity]["attributes"]["distribution"] == 'custom':
                 duration = self.call_custom_processing_time()
             else:
-                distribution = self._params.TASKS[activity]['name']
-                parameters = self._params.TASKS[activity]['parameters']
+                distribution = self._params.TASKS[activity]["attributes"]["distribution"]
+                parameters = self._params.TASKS[activity]["attributes"]["parameters"]
                 duration = getattr(np.random, distribution)(**parameters, size=1)[0]
                 if duration < 0:
-                    print("WARNING: Negative processing time",  duration)
+                    # print("WARNING: Negative processing time",  duration)
                     duration = 0
         except:
             raise ValueError("ERROR: The processing time of", activity, "is not defined in json file")
@@ -343,6 +348,8 @@ class Token(object):
             return all_enabled_trans[0]
         else:
             if len(self._am) == 1:
+                token_name = self._am
+                # print("token name: ",token_name)
                 return self.define_xor_next_activity(all_enabled_trans)
             else:
                 events = []

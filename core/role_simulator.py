@@ -50,7 +50,7 @@ Finally, in the simulation parameters file, we have to indicate the role assigne
 
 '''
 from datetime import timedelta
-import simpy
+import simpy # type: ignore
 
 
 class RoleSimulator(object):
@@ -106,6 +106,7 @@ class RoleSimulator(object):
     def _define_stop_week(self, timestamp):
         if timestamp.hour < self._calendar['hour_min']:
             stop = timestamp.replace(hour=self._calendar['hour_min'], minute=0, second=0) - timestamp
+            stop = stop.total_seconds()
         else:
             new_day = timestamp.replace(hour=self._calendar['hour_min'], minute=0, second=0) + timedelta(days=1)
             stop = (new_day - timestamp).total_seconds()
@@ -124,6 +125,7 @@ class RoleSimulator(object):
             stop = self._define_stop_week(timestamp)
         else:
             stop = 0
+        
         return int(stop)
 
     def _split_week(self, timestamp, duration):

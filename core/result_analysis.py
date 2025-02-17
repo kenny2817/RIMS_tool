@@ -16,10 +16,10 @@ Example of analysis:
 
 import glob
 import os
-import pandas as pd
+import pandas as pd # type: ignore
 import json
 from .parameters import Parameters
-import pm4py
+import pm4py # type: ignore
 from datetime import datetime, timedelta
 
 
@@ -54,6 +54,8 @@ class Result(object):
         for act in self._params.TASKS.keys():
             analysis[act + "_frequency"] = len(sim_df[sim_df['activity'] == act])
         try:
+            # print(sim_df)
+            # print(sim_df['start_time'])
             start = datetime.strptime(sim_df['start_time'].iloc[0], '%Y-%m-%d %H:%M:%S.%f')
         except:
             start = datetime.strptime(sim_df['start_time'].iloc[0], '%Y-%m-%d %H:%M:%S')

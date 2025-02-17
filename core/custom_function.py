@@ -27,7 +27,7 @@ used as input from a predictive model.
 
 '''
 
-from statsmodels.tsa.ar_model import AutoRegResults
+from statsmodels.tsa.ar_model import AutoRegResults # type: ignore
 from .utility import Buffer
 import random
 import pickle
